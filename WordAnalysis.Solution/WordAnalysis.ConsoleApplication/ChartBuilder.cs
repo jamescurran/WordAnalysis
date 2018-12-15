@@ -47,17 +47,17 @@ namespace WordAnalysis.ConsoleApplication
             ChartBuilder.SaveChart(ChartBuilder.GetChart(letterFrequency, "Letter Frequency"), filePath);
         }
 
-        public static void SaveLetterStartingWithChart(List<Letter> letters)
+        public static void SaveLetterStartingWithChart(Analysis analyse)
         {
-            var data = letters.OrderBy(x => x.Value).Select(d => new Counter<char>(d.Value, d.StartingWith)).ToList();
+            var data = analyse.Letters.OrderBy(x => x.Value).Select(d => new Counter<char>(d.Value, d.StartingWith)).ToList();
 
             var filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "charts/letter-ending-with.png");
             ChartBuilder.SaveChart(ChartBuilder.GetChart(data, "Ending With Frequency"), filePath);
         }
 
-        public static void SaveLetterEndingWithChart(List<Letter> letters)
+        public static void SaveLetterEndingWithChart(Analysis analyse)
         {
-            var data = letters.OrderBy(x => x.Value).Select(d=> new Counter<char>(d.Value, d.EndingWith)).ToList();
+            var data = analyse.Letters.OrderBy(x => x.Value).Select(d=> new Counter<char>(d.Value, d.EndingWith)).ToList();
             var filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "charts/letter-starting-with.png");
             ChartBuilder.SaveChart(ChartBuilder.GetChart(data, "Starting With Frequency"), filePath);
         }
@@ -68,9 +68,9 @@ namespace WordAnalysis.ConsoleApplication
             ChartBuilder.SaveChart(ChartBuilder.GetChart(wordLengthFrequency, "Word Length Frequency", "Word Length", "Frequency"), filePath);
         }
 
-        public static void SaveDoubleLetterFrequencyChart(List<Letter> letters)
+        public static void SaveDoubleLetterFrequencyChart(Analysis analyse)
         {
-            var data = letters.OrderBy(x => x.Value).Select(d => new Counter<char>(d.Value, d.DoubleLetters)).ToList();
+            var data = analyse.Letters.OrderBy(x => x.Value).Select(d => new Counter<char>(d.Value, d.DoubleLetters)).ToList();
             var filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "charts/double-letters.png");
             ChartBuilder.SaveChart(ChartBuilder.GetChart(data, "Double Letter Frequency"), filePath);
         }

@@ -6,103 +6,125 @@ namespace WordAnalysis.ConsoleApplication
 {
     public class Analysis
     {
-        static Dictionary<char, Letter>  LetterByChar = new Dictionary<char, Letter>();
-        public static List<Letter> AnalyseWords(List<string> words, int totalWords)
-        {
-            var letters = new List<Letter>();
+        public int[] WordLengthFrequency { get; } = new int[100];
+        public int TotalLetters { get; private set; } = 0;
+        public int[] LetterFrequency { get; } = new int[127];
+        public List<string> Words { get; }
 
-            foreach (var letter in Letters)
+        public List<Letter> Letters { get; private set; } = new List<Letter>();
+
+        private  const string _lowercaseLetters = "abcdefghijklmnopqrstuvwxyz";
+
+        public Analysis(List<string> words)
+        {
+            Words = words;
+        }
+
+        private readonly Dictionary<char, Letter> _letterByChar = new Dictionary<char, Letter>();
+
+        public void AnalyseWords()
+        {
+            foreach (string word in Words)
             {
-                var startingWith = StartingWithCount(letter, words);
-                var endingWith = EndingWithCount(letter, words);
+                var wordTrimmedLength = word.Length;
+
+                // Update Word Length Frequency
+                WordLengthFrequency[wordTrimmedLength]++;
+
+                // Update Letter Frequency
+                foreach (var lowercaseLetter in word)
+                {
+                    if (Char.IsLower(lowercaseLetter))
+                        LetterFrequency[lowercaseLetter]++;
+                }
+
+                TotalLetters += wordTrimmedLength;
+            }
+
+
+            Letters = new List<Letter>();
+
+            foreach (var letter in _lowercaseLetters)
+            {
+                var startingWith = StartingWithCount(letter);
+                var endingWith = EndingWithCount(letter);
                 var newLetter = new Letter()
                 {
                     Value = letter,
                     StartingWith = startingWith,
-                    StartingWithPercentage = StartingWithPercentage(startingWith, totalWords, words),
+                    StartingWithPercentage = Percentage(startingWith),
                     EndingWith = endingWith,
-                    EndingWithPercentage = EndingWithPercentage(endingWith, totalWords, words),
-//                    DoubleLetters = DoubleLetterCount(letter, words)
+                    EndingWithPercentage = Percentage(endingWith),
                 };
-                letters.Add(newLetter);
-                LetterByChar.Add(letter, newLetter);
+                Letters.Add(newLetter);
+                _letterByChar.Add(letter, newLetter);
             }
 
-            FindDoubleLetters(words);
-            return letters;
+            FindDoubleLetters();
         }
 
+        internal List<Counter<char>> GetOrderedLetterFrequency()
+        {
+            return _lowercaseLetters
+                .Zip(LetterFrequency.Skip('a'), (l, r) => new Counter<char>(l, r))
+                .OrderByDescending(c => c.Count)
+                .ToList();
+        }
 
-
-        public static IEnumerable<string> FindWords(string letters, List<string> words)
+        public IEnumerable<string> FindWords(string letters)
         {
             var matchingWords = new List<string>();
 
             Console.WriteLine();
             Console.WriteLine($"== Solving ({letters.ToUpper()}) ==");
 
-            var match = true;
-
-            foreach (var word in words)
+            foreach (var word in Words)
             {
-                match = true;
+                var match = true;
 
                 if (word.Length != letters.Length)
                 {
-                    match = false;
                     continue;
                 }
 
                 foreach (var letter in letters)
                 {
-                    if (!word.Contains(letter))
-                    {
-                        match = false;
+                    if (word.Contains(letter))
                         continue;
-                    }
+                    match = false;
+                    break;
                 }
 
-                if (match)
-                {
-                    matchingWords.Add(word.ToUpper());
-                    Console.WriteLine(word.ToUpper());
-                }
+                if (!match)
+                    continue;
+                matchingWords.Add(word.ToUpper());
+                Console.WriteLine(word.ToUpper());
             }
 
             return matchingWords;
         }
 
-        private static double EndingWithPercentage(double endingWith, int totalWords, List<string> words)
+        private  double Percentage(double  startingWithCount)
         {
-            return (endingWith / totalWords) * 100;
+            return (startingWithCount / Words.Count) * 100;
         }
 
-        private static double StartingWithPercentage(double  startingWithCount,  int totalWords, List<string> words)
+         int StartingWithCount(char letter)
         {
-            return (startingWithCount / totalWords) * 100;
+            return Words.Count(x => x[0] == letter);
         }
 
-        static int StartingWithCount(char letter, List<string> words)
+        int EndingWithCount(char  letter)
         {
-            return words.Count(x => x[0] == letter);
+            return Words.Count(x => x[x.Length-1] == letter);
         }
 
-        static int EndingWithCount(char  letter, List<string> words)
+        private void FindDoubleLetters()
         {
-            return words.Count(x => x[x.Length-1] == letter);
-        }
-
-        static int DoubleLetterCount(char letter, List<string> words)
-        {
-            var doublel = new string(letter, 2);
-            return words.Count(x => x.Contains(doublel));
-        }
-        private static void FindDoubleLetters(List<string> words)
-        {
-            foreach(string word in words)
+            foreach(string word in Words)
             foreach (char l in DoubledLetters(word))
             {
-                LetterByChar[l].DoubleLetters++;
+                _letterByChar[l].DoubleLetters++;
             }
         }
 
@@ -121,7 +143,5 @@ namespace WordAnalysis.ConsoleApplication
                     lastLetter = l;
             }
         }
-
-        public static string Letters => "abcdefghijklmnopqrstuvwxyz";
     }
 }

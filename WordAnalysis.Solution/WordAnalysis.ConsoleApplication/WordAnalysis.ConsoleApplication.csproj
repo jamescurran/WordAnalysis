@@ -49,6 +49,7 @@
   <ItemGroup>
     <Compile Include="Analysis.cs" />
     <Compile Include="ChartBuilder.cs" />
+    <Compile Include="Counter.cs" />
     <Compile Include="Letter.cs" />
     <Compile Include="Output.cs" />
     <Compile Include="Program.cs" />
