@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
@@ -17,9 +18,14 @@ namespace WordAnalysis.ConsoleApplication
 
         static void Main(string[] args)
         {
+            var sw = new Stopwatch();
+            sw.Start();
             ReadFile();
 
+            Console.WriteLine($"Elapsed time: {sw.Elapsed}");
+
             _letters = Analysis.AnalyseWords(_words, _totalWords);
+            Console.WriteLine($"Elapsed time: {sw.Elapsed}");
 
             Output.OutputLetterStartsWith(_letters);
             Output.OutputLetterEndsWith(_letters);
@@ -28,6 +34,7 @@ namespace WordAnalysis.ConsoleApplication
             Output.OutputLetterFrequency(_letterFrequency, _totalLetters);
             Output.OutputDoubleLetterFrequency(_letters);
             Output.OutputWordsEndingWithIng(_words);
+            Console.WriteLine($"Elapsed time: {sw.Elapsed}");
 
             ChartBuilder.SaveLetterFrequencyChart(_letterFrequency);
             ChartBuilder.SaveLetterStartingWithChart(_letters);
