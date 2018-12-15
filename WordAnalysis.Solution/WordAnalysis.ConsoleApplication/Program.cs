@@ -37,7 +37,6 @@ namespace WordAnalysis.ConsoleApplication
 
             Analysis.FindWords("barnslieu", _words);
 
-            Console.ReadLine();
         }
 
         static void ReadFile()
