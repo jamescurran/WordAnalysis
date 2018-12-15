@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
@@ -9,31 +10,37 @@ namespace WordAnalysis.ConsoleApplication
     {
         static List<string> _words = new List<string>();
         static List<Letter> _letters = new List<Letter>();
-        static SortedDictionary<int, int> _wordLengthFrequency = new SortedDictionary<int, int>();
-        static SortedDictionary<string, int> _letterFrequency = new SortedDictionary<string, int>();
-        static SortedDictionary<string, int> _doubleLetterFrequency = new SortedDictionary<string, int>();
+        static int[] _wordLengthFrequency = new int[100];
+        static int[] _letterFrequency = new int[127];
+        //static int[] _doubleLetterFrequency = new int[127];
         static int _totalWords;
         static int _totalLetters;
 
         static void Main(string[] args)
         {
+            var sw = new Stopwatch();
+            sw.Start();
             ReadFile();
 
+            Console.WriteLine($"Elapsed time: {sw.Elapsed}");
+
             _letters = Analysis.AnalyseWords(_words, _totalWords);
+            Console.WriteLine($"Elapsed time: {sw.Elapsed}");
 
             Output.OutputLetterStartsWith(_letters);
             Output.OutputLetterEndsWith(_letters);
-            Output.OutputWordLengths(_wordLengthFrequency);
+            var orderedWordLengths = Output.OutputWordLengths(_wordLengthFrequency);
             Output.OutputLongestWord(_words);
-            Output.OutputLetterFrequency(_letterFrequency, _totalLetters);
+            var orderedLetterFrequency = Output.OutputLetterFrequency(_letterFrequency, _totalLetters);
             Output.OutputDoubleLetterFrequency(_letters);
             Output.OutputWordsEndingWithIng(_words);
+            Console.WriteLine($"Elapsed time: {sw.Elapsed}");
 
-            ChartBuilder.SaveLetterFrequencyChart(_letterFrequency);
+            ChartBuilder.SaveLetterFrequencyChart(orderedLetterFrequency);
             ChartBuilder.SaveLetterStartingWithChart(_letters);
             ChartBuilder.SaveLetterEndingWithChart(_letters);
-            ChartBuilder.SaveWordLengthFrequencyChart(_wordLengthFrequency);
-            ChartBuilder.SaveDoubleLetterFrequencyChart(_doubleLetterFrequency);
+            ChartBuilder.SaveWordLengthFrequencyChart(orderedWordLengths);
+            ChartBuilder.SaveDoubleLetterFrequencyChart(_letters);
 
             Analysis.FindWords("barnslieu", _words);
 
@@ -41,62 +48,31 @@ namespace WordAnalysis.ConsoleApplication
 
         static void ReadFile()
         {
-            foreach (string word in File.ReadLines(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "data/words.txt")))
+            foreach (string word1 in File.ReadLines(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "data/words.txt")))
             {
-                var wordTrimmedLength = word.Trim().Length;
+                var word = word1.Trim().ToLower();
+                var wordTrimmedLength = word.Length;
 
                 // Update Word Length Frequency
-                if (_wordLengthFrequency.ContainsKey(wordTrimmedLength))
-                {
-                    _wordLengthFrequency[wordTrimmedLength]++;
-                }
-                else
-                {
-                    _wordLengthFrequency.Add(wordTrimmedLength, 1);
-                }
+                 _wordLengthFrequency[wordTrimmedLength]++;
 
                 // Update Letter Frequency
-                foreach (var letter in word)
+                foreach (var lowercaseLetter in word)
                 {
-                    var lowercaseLetter = letter.ToString().ToLower();
-
-                    if (_letterFrequency.ContainsKey(lowercaseLetter))
-                    {
+                    if (Char.IsLower(lowercaseLetter))
                         _letterFrequency[lowercaseLetter]++;
-                    }
-                    else
-                    {
-                        if (Analysis.GetLetters().Contains(lowercaseLetter))
-                            _letterFrequency.Add(lowercaseLetter, 1);
-                    }
                 }
 
-                // Update Double Letter Frequency
-                foreach (var letter in Analysis.GetLetters())
-                {
-                    if (word.Contains(letter + letter))
-                    {
-                        if (_doubleLetterFrequency.ContainsKey(letter + letter))
-                        {
-                            _doubleLetterFrequency[letter + letter]++;
-                        }
-                        else
-                        {
-                            _doubleLetterFrequency.Add(letter + letter, 1);
-                        }
-                    }
-                }
+                _totalLetters += wordTrimmedLength;
 
-                _totalLetters += word.Length;
-
-                _words.Add(word.Trim().ToLower());
+                _words.Add(word);
             }
 
             _totalWords = _words.Count();
 
             Console.WriteLine();
-            Console.WriteLine($"Total words: {_totalWords.ToString("N0")}");
-            Console.WriteLine($"Total letters: {_totalLetters.ToString("N0")}");
+            Console.WriteLine($"Total words: {_totalWords:N0}");
+            Console.WriteLine($"Total letters: {_totalLetters:N0}");
         }
     }
 }

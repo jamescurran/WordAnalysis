@@ -6,25 +6,33 @@ namespace WordAnalysis.ConsoleApplication
 {
     public class Analysis
     {
+        static Dictionary<char, Letter>  LetterByChar = new Dictionary<char, Letter>();
         public static List<Letter> AnalyseWords(List<string> words, int totalWords)
         {
-            var _letters = new List<Letter>();
+            var letters = new List<Letter>();
 
-            foreach (var letter in GetLetters())
+            foreach (var letter in Letters)
             {
-                _letters.Add(new Letter()
+                var startingWith = StartingWithCount(letter, words);
+                var endingWith = EndingWithCount(letter, words);
+                var newLetter = new Letter()
                 {
-                    Value = letter.ToLower(),
-                    StartingWith = StartingWithCount(letter, words),
-                    StartingWithPercentage = StartingWithPercentage(letter, totalWords, words),
-                    EndingWith = EndingWithCount(letter, words),
-                    EndingWithPercentage = EndingWithPercentage(letter, totalWords, words),
-                    DoubleLetters = DoubleLetterCount(letter, words)
-                });
+                    Value = letter,
+                    StartingWith = startingWith,
+                    StartingWithPercentage = StartingWithPercentage(startingWith, totalWords, words),
+                    EndingWith = endingWith,
+                    EndingWithPercentage = EndingWithPercentage(endingWith, totalWords, words),
+//                    DoubleLetters = DoubleLetterCount(letter, words)
+                };
+                letters.Add(newLetter);
+                LetterByChar.Add(letter, newLetter);
             }
 
-            return _letters;
+            FindDoubleLetters(words);
+            return letters;
         }
+
+
 
         public static IEnumerable<string> FindWords(string letters, List<string> words)
         {
@@ -64,35 +72,56 @@ namespace WordAnalysis.ConsoleApplication
             return matchingWords;
         }
 
-        private static double EndingWithPercentage(string letter, int totalWords, List<string> words)
+        private static double EndingWithPercentage(double endingWith, int totalWords, List<string> words)
         {
-            return ((double)EndingWithCount(letter, words) / (double)totalWords) * 100;
+            return (endingWith / totalWords) * 100;
         }
 
-        private static double StartingWithPercentage(string letter, int totalWords, List<string> words)
+        private static double StartingWithPercentage(double  startingWithCount,  int totalWords, List<string> words)
         {
-            return ((double)StartingWithCount(letter, words) / (double)totalWords) * 100;
+            return (startingWithCount / totalWords) * 100;
         }
 
-        static int StartingWithCount(string letter, List<string> words)
+        static int StartingWithCount(char letter, List<string> words)
         {
-            return words.Count(x => x.StartsWith(letter));
+            return words.Count(x => x[0] == letter);
         }
 
-        static int EndingWithCount(string letter, List<string> words)
-
+        static int EndingWithCount(char  letter, List<string> words)
         {
-            return words.Count(x => x.EndsWith(letter));
+            return words.Count(x => x[x.Length-1] == letter);
         }
 
-        static int DoubleLetterCount(string letter, List<string> words)
+        static int DoubleLetterCount(char letter, List<string> words)
         {
-            return words.Count(x => x.Contains($"{letter}{letter}"));
+            var doublel = new string(letter, 2);
+            return words.Count(x => x.Contains(doublel));
+        }
+        private static void FindDoubleLetters(List<string> words)
+        {
+            foreach(string word in words)
+            foreach (char l in DoubledLetters(word))
+            {
+                LetterByChar[l].DoubleLetters++;
+            }
         }
 
-        public static string[] GetLetters()
+        static IEnumerable<char> DoubledLetters(string word)
         {
-            return new[] { "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z" };
+            var lastLetter = 0;
+
+            foreach (char l in word)
+            {
+                if (Char.IsLetter(l) && l == lastLetter)
+                {
+                    yield return l;
+                    lastLetter = 0;     // don't count triple letters
+                }
+                else
+                    lastLetter = l;
+            }
         }
+
+        public static string Letters => "abcdefghijklmnopqrstuvwxyz";
     }
 }

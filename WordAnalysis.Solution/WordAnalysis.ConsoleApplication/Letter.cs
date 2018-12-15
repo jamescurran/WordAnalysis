@@ -2,7 +2,7 @@
 {
     public class Letter
     {
-        public string Value { get; set; }
+        public char Value { get; set; }
         public int StartingWith { get; set; }
         public double StartingWithPercentage { get; set; }
         public int EndingWith { get; set; }
